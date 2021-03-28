@@ -1,10 +1,11 @@
 {
   "name": "@anfo/egg-basic",
-  "version": "1.0.0",
+  "version": "1.0.14",
   "description": "basic plugin for egg",
   "dependencies": {
-    "@anfo/egg-anfo-validator": "^1.0.1",
+    "@anfo/egg-anfo-validator": "^1.0.3",
     "egg": "^2.29.1",
-    "egg-mongoose": "^3.3.1"
+    "egg-mongoose": "^3.3.1",
+    "jsonwebtoken": "^8.5.1"
   }
 }

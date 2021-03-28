@@ -44,7 +44,7 @@ module.exports = app=>class extends app.Service{
             limit: pageSize,
             skip: (page-1) * pageSize
         })).exec())
-        let total = await model.find(condition).estimatedDocumentCount()
+        let total = await model.count(condition)
         return this.success({
             data: (dataHandler?(await dataHandler?.(datas)):datas) || [],
             total
@@ -55,17 +55,39 @@ module.exports = app=>class extends app.Service{
         let {
             model,
             dataHandler = data=>data,
+            dataHandlerWhenUpdate = data=>data,
+            dataHandlerWhenSave = data=>data,
+            // e.g.: '-password' / 'test testa testb'
+            fields = null,
         } = options || {}
         let ctx = this.ctx
         
         let data = ctx.request.body
+        if(fields){
+            fields = fields.trim()
+            let items = fields.split(' ')
+            if(fields?.[0] === '-'){
+                items.forEach(i=>{
+                    delete data[i.slice(1)]
+                })
+            }else{
+                data = items.reduce((t, i)=>{
+                    if(data.hasOwnProperty(i)){
+                        t[i] = data[i]
+                    }
+                    return t
+                }, {})
+            }
+        }
         data = dataHandler(data)
         if(data._id){
             let _id = data._id
             delete data._id
+            data = dataHandlerWhenUpdate(data)
             return this.success(await model.findByIdAndUpdate(_id, data, {new: true}))
         }else{
-            return this.success(await (new model(data)).save())
+            data = dataHandlerWhenSave(data)
+            return this.success(await model.create(data))
         }
     }
 }
