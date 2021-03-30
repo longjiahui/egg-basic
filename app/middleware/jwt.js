@@ -1,4 +1,4 @@
-const errorType = require('../../lib/errorType')
+const errorType = require('../lib/errorType')
 const JWT = require('jsonwebtoken')
 
 // check true token需要存在且合法，否则报未登录错误
