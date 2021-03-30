@@ -4,7 +4,7 @@ module.exports = {
     get jwt(){
         return jwt
     },
-    jwtSign(target){
-        return jwt.sign(target, this.config.jwtSecret)
+    jwtSign(target, ...rest){
+        return jwt.sign(target, this.config.jwtSecret, ...rest)
     }
 }
