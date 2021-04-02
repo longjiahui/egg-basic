@@ -1,6 +1,6 @@
 {
   "name": "@anfo/egg-basic",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "basic plugin for egg",
   "dependencies": {
     "@anfo/egg-anfo-validator": "^1.0.6",

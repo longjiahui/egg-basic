@@ -63,6 +63,7 @@ module.exports = app=>class extends app.Service{
         let ctx = this.ctx
         
         let data = ctx.request.body
+        let { _id } = data
         if(fields){
             fields = fields.trim()
             let items = fields.split(' ')
@@ -80,9 +81,7 @@ module.exports = app=>class extends app.Service{
             }
         }
         data = dataHandler(data)
-        if(data._id){
-            let _id = data._id
-            delete data._id
+        if(_id){
             data = dataHandlerWhenUpdate(data)
             return this.success(await model.findByIdAndUpdate(_id, data, {new: true}))
         }else{
