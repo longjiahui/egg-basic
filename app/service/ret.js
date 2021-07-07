@@ -45,10 +45,19 @@ module.exports = app=>class extends app.Service{
             skip: (page-1) * pageSize
         })).exec())
         let total = await model.countDocuments(condition)
+        return this.makePageData(total, 
+            (dataHandler?(await dataHandler?.(datas)):datas) || [],)
+    }
+
+    makePageData(total, data){
         return this.success({
-            data: (dataHandler?(await dataHandler?.(datas)):datas) || [],
+            data,
             total
         })
+    }
+
+    emptyPageData(){
+        return this.makePageData(0, [])
     }
 
     async save(options){
