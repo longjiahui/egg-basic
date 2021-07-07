@@ -44,7 +44,7 @@ module.exports = app=>class extends app.Service{
             limit: pageSize,
             skip: (page-1) * pageSize
         })).exec())
-        let total = await model.count(condition)
+        let total = await model.estimatedDocumentCount(condition)
         return this.success({
             data: (dataHandler?(await dataHandler?.(datas)):datas) || [],
             total
