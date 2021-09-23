@@ -31,6 +31,11 @@ module.exports = app=>class extends app.Service{
             dataHandler = data=>data,
             condition = {},
             projection,
+
+            // 互斥 只有一个生效
+            withDeleted = false,
+            onlyDeleted = false,
+            
         } = options || {}
         let ctx = this.ctx
         let {
@@ -40,11 +45,24 @@ module.exports = app=>class extends app.Service{
 
         page = page?+page:1
         pageSize = pageSize?+pageSize:20
-        let datas = await (queryHandler(model.find(condition, projection, {
+
+        let findFunc = model?.find, countDocumentsFunc = model?.countDocuments
+        if(withDeleted){
+            findFunc = model?.findWithDeleted
+            countDocumentsFunc = modal?.countDocumentsWithDeleted
+        }
+        if(onlyDeleted){
+            findFunc = model?.findDeleted
+            countDocumentsFunc = model?.countDocumentsDeleted
+        }
+
+        // 必须指定model为this
+        let datas = await (queryHandler(findFunc?.call(model, condition, projection, {
             limit: pageSize,
             skip: (page-1) * pageSize
-        })).exec())
-        let total = await model.countDocuments(condition)
+        }))?.exec())
+
+        let total = await countDocumentsFunc?.call(model, condition)
         return this.makePageData(total, 
             (dataHandler?(await dataHandler?.(datas)):datas) || [],)
     }
