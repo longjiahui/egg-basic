@@ -24,6 +24,29 @@ module.exports = app=>class extends app.Service{
         }
     }
 
+    getPageProps(){
+        let ctx = this.ctx
+        let {
+            page,
+            pageSize
+        } = ctx.request.body || {}
+
+        page = page?+page:1
+        pageSize = pageSize?+pageSize:20
+        return {
+            page,
+            pageSize,
+        }
+    }
+
+    getLimitAndSkip(){
+        let { page, pageSize } = this.getPageProps()
+        return {
+            limit: pageSize,
+            skip: (page-1) * pageSize,
+        }
+    }
+
     async pageData(options){
         let {
             model, 
@@ -37,14 +60,6 @@ module.exports = app=>class extends app.Service{
             onlyDeleted = false,
             
         } = options || {}
-        let ctx = this.ctx
-        let {
-            page,
-            pageSize
-        } = ctx.request.body || {}
-
-        page = page?+page:1
-        pageSize = pageSize?+pageSize:20
 
         let findFunc = model?.find, countDocumentsFunc = model?.countDocuments
         if(withDeleted){
@@ -57,10 +72,7 @@ module.exports = app=>class extends app.Service{
         }
 
         // 必须指定model为this
-        let datas = await (queryHandler(findFunc?.call(model, condition, projection, {
-            limit: pageSize,
-            skip: (page-1) * pageSize
-        }))?.exec())
+        let datas = await (queryHandler(findFunc?.call(model, condition, projection, this.getLimitAndSkip()))?.exec())
 
         let total = await countDocumentsFunc?.call(model, condition)
         return this.makePageData(total, 
