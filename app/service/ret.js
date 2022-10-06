@@ -84,6 +84,7 @@ module.exports = app=>class extends app.Service{
             dataHandler = data=>data,
             dataHandlerWhenUpdate = data=>data,
             dataHandlerWhenSave = data=>data,
+            session,
             // e.g.: '-password' / 'test testa testb'
             fields = null,
         } = options || {}
@@ -110,10 +111,13 @@ module.exports = app=>class extends app.Service{
         data = dataHandler(data)
         if(_id){
             data = dataHandlerWhenUpdate(data)
-            return this.success(await model.findByIdAndUpdate(_id, data, {new: true}))
+            return this.success(await model.findByIdAndUpdate(_id, data, {
+                session,
+                new: true
+            }))
         }else{
             data = dataHandlerWhenSave(data)
-            return this.success(await model.create(data))
+            return this.success((await model.create([data], { session }))?.[0])
         }
     }
 }

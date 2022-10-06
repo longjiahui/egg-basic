@@ -14,7 +14,7 @@ module.exports = (isQuiet=false)=>(async (ctx, next)=>{
         }catch(err){
             ctx.logger.warn(err)
             if(!isQuiet){
-                throw err
+                throw new errorType.LoginCheckError('token verify error', err)
             }
         }
     }
