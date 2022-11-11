@@ -65,19 +65,21 @@ module.exports = app=>class extends app.Service{
     }
 
     filterData(data, fields = ''){
-        fields = fields.trim()
-        let items = fields.split(' ')
-        if(fields?.[0] === '-'){
-            items.forEach(i=>{
-                delete data[i.slice(1)]
-            })
-        }else{
-            data = items.reduce((t, i)=>{
-                if(data.hasOwnProperty(i)){
-                    t[i] = data[i]
-                }
-                return t
-            }, {})
+        if(fields){
+            fields = fields.trim()
+            let items = fields.split(' ')
+            if(fields?.[0] === '-'){
+                items.forEach(i=>{
+                    delete data[i.slice(1)]
+                })
+            }else{
+                data = items.reduce((t, i)=>{
+                    if(data.hasOwnProperty(i)){
+                        t[i] = data[i]
+                    }
+                    return t
+                }, {})
+            }
         }
         return data
     }
@@ -89,6 +91,7 @@ module.exports = app=>class extends app.Service{
             dataHandlerWhenUpdate = data=>({$set: data}),
             dataHandlerWhenSave = data=>data,
             session,
+            projection,
             // e.g.: '-password' / 'test testa testb'
             fields = null,
             upsert = false,
@@ -107,10 +110,42 @@ module.exports = app=>class extends app.Service{
                 session,
                 new: true,
                 upsert,
+                projection,
             })
         }else{
             data = dataHandlerWhenSave(data)
-            return (await model.create([data], { session }))?.[0]
+            return this.filterData((await (new model(data)).save({session}))?.toObject?.() || {}, projection)
         }
+    }
+
+    async pageDataByAggregate(options){
+        let {
+            pipeline = [],
+            // withDelete or not
+            type = '',
+            model,
+            sortPipeline = [],
+            suffixPipeline = [],
+            dataHandler = d=>d,
+        } = options || {}
+        let { skip, limit } = this.getLimitAndSkip()
+        let data = (await model[`aggregate${type}`]([
+            ...pipeline,
+            {
+                $facet: {
+                    data: [...sortPipeline, {
+                            $skip: skip,
+                        }, {
+                            $limit: limit,
+                        },
+                        ...suffixPipeline,
+                    ],
+                    amount: [{
+                        $count: 'amount',
+                    }]
+                }
+            }
+        ]))[0]
+        return this.makePageData(data.amount?.[0]?.amount || 0, (dataHandler ? (await dataHandler(data.data)) : data.data) || [])
     }
 }

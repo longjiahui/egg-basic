@@ -39,4 +39,8 @@ module.exports = app=>class extends app.Service{
     async save(...rest){
         return this.success(await this.ctx.service.basic.save(...rest))
     }
+
+    async pageDataByAggregate(...rest){
+        return this.success(await this.ctx.service.basic.pageDataByAggregate(...rest))
+    }
 }
