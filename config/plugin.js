@@ -7,4 +7,12 @@ module.exports = {
         enable: true,
         package: 'egg-mongoose'
     },
+    websocket: {
+        enable: true,
+        package: 'egg-websocket-plugin',
+    },
+    redis: {
+        enable: true,
+        package: 'egg-redis',
+    }
 } 

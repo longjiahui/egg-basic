@@ -1,3 +1,6 @@
+const SOCKET = Symbol('Context#socket')
+const ClientMaker = require('../lib/websocket/client')
+
 module.exports = {
     getParamsString(){
         let ctx = this
@@ -36,5 +39,11 @@ module.exports = {
             }
         }
         return paramsString
-    }
+    },
+    get socket(){
+        if(!this[SOCKET]){
+            this[SOCKET] = new (ClientMaker(this.app))(this.websocket)
+        }
+        return this[SOCKET]
+    },
 }
