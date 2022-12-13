@@ -4,24 +4,39 @@ const Redis = require('ioredis')
 const Socket = require('../socket')
 const utils = require('../utils')
 
-const SUB = Symbol('Client#sub')
+const ROOMSUB = Symbol('Client#sub')
 const SOCKET = Symbol('Client#Socket')
 
 module.exports = app=>class extends Emitter{
 
     pub = new Redis(app.config.redis)
-    sub = new Redis(app.config.redis)
+    userSub = new Redis(app.config.redis)
 
     // client: 'ws' connection
-    constructor(client, commandTimeout=15000){
+    constructor(client, userID, commandTimeout=15000){
         super()
         this.id = shortid.generate()    // 唯一标识
         this.client = client
+        this.userID = userID
         this.commandTimeout = commandTimeout
         if(!this.client){
             throw new Error(`construct Client error: ${this.client}`)
         }
+        if(userID){
+            this.userSub.subscribe(userID, err=>{
+                if (err) {
+                    app.logger.error(`${userID} subscribe failed: `, err)
+                }else{
+                    this.userSub.on('message', (channel, message)=>{
+                        if(channel === userID){
+                            this.send(...utils.deserializeRedisPSMessage(message))
+                        }
+                    })
+                }
+            })
+        }
         client.on('close', (...rest)=>{
+            this.roomSub.unsubscribe()
             this.emit('close', ...rest)
         })
         client.on('message', (...rest)=>this.messageHandler(...rest))
@@ -39,15 +54,15 @@ module.exports = app=>class extends Emitter{
     }
     
     get sub(){
-        if(!this[SUB]){
-            this[SUB] = new Redis(app.config.redis)
+        if(!this[ROOMSUB]){
+            this[ROOMSUB] = new Redis(app.config.redis)
         }
-        return this[SUB]
+        return this[ROOMSUB]
     }
 
     messageHandler(data){
         data = String(data)
-        this.debug('received: ', data.slice(0, 1024))
+        this.debug('received: ', data.slice(0, 50))
         try{
             data = JSON.parse(data)
         }catch(err){
@@ -66,7 +81,7 @@ module.exports = app=>class extends Emitter{
 
     async _send(data){
         data = JSON.stringify(data)
-        this.debug('sending: ', data && data.slice(0, 1024))
+        this.debug('sending: ', data && data.slice(0, 50))
         this.client.send(data)
     }
 
@@ -99,18 +114,21 @@ module.exports = app=>class extends Emitter{
         return promise
     }
 
-    join(room){
-        return new Promise((r, reject)=>{
-            this.sub.subscribe(utils._roomKey(room), (err, count)=>{
+    join(roomChannel){
+        return new Promise(async (r, reject)=>{
+            await this.roomSub.unsubscribe()
+            this.roomSub.removeAllListeners('message')
+            this.roomSub.subscribe(roomChannel, (err, count)=>{
                 if (err) {
                     reject(err)
                 } else {
                     r(count)
                 }
             })
-            this.sub.on('message', (channel, message)=>{
-                app.logger.debug(`receive message from channel[${channel}]: ${message?.slice?.(100)}`)
-                this.send(...utils.deserializeRedisPSMessage(message))
+            this.roomSub.on('message', (channel, message)=>{
+                if(roomChannel === channel){
+                    this.send(...utils.deserializeRedisPSMessage(message))
+                }
             })
         })
     }

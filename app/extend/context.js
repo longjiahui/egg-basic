@@ -42,7 +42,7 @@ module.exports = {
     },
     get socket(){
         if(!this[SOCKET]){
-            this[SOCKET] = new (ClientMaker(this.app))(this.websocket)
+            this[SOCKET] = new (ClientMaker(this.app))(this.websocket, this.state.user?._id)
         }
         return this[SOCKET]
     },

@@ -10,10 +10,10 @@ module.exports = app=>class{
         }
         return this[PUB]
     }
-    to(room){
+    to(channel){
         return {
             emit: (command, ...rest)=>{
-                this.pub.publish(utils._roomKey(room), utils.serializeRedisPSMessage(command, ...rest))
+                this.pub.publish(channel, utils.serializeRedisPSMessage(command, ...rest))
             }
         }
     }

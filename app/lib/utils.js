@@ -1,8 +1,4 @@
 module.exports = {
-    _roomKey(room){
-        return `wsroom:${room}`
-    },
-
     serializeRedisPSMessage(command, ...rest){
         return JSON.stringify({
             command, rest
