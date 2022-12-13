@@ -41,6 +41,7 @@ module.exports = {
         return paramsString
     },
     get socket(){
+        // 这里有个隐藏问题就是 如果用户连接socket的controller没引用这个socket，就不能够订阅到 用户的channel
         if(!this[SOCKET]){
             this[SOCKET] = new (ClientMaker(this.app))(this.websocket, this.state.user?._id)
         }

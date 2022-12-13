@@ -29,6 +29,12 @@ class _Emitter {
             this.callbacks[channel] = []
         }
     }
+    off(channel, callback){
+        let ind = this.callbacks[channel]?.findIndex?.(f=>f=== callback)
+        if(ind > -1){
+            this.callbacks[channel].splice(ind, 1)
+        }
+    }
     // id 用来获取返回
     on(channel, callback){
         this._confirmCMDFunc(channel)
@@ -76,4 +82,4 @@ class Emitter extends _Emitter{
     }
 }
 
-module.exports = Emitter
+export default Emitter

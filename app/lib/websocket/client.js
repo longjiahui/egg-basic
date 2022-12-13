@@ -4,7 +4,7 @@ const Redis = require('ioredis')
 const Socket = require('../socket')
 const utils = require('../utils')
 
-const ROOMSUB = Symbol('Client#sub')
+const ROOMSUB = Symbol('Client#roomSub')
 const SOCKET = Symbol('Client#Socket')
 
 module.exports = app=>class extends Emitter{
@@ -16,8 +16,8 @@ module.exports = app=>class extends Emitter{
     constructor(client, userID, commandTimeout=15000){
         super()
         this.id = shortid.generate()    // 唯一标识
-        this.client = client
         this.userID = userID
+        this.client = client
         this.commandTimeout = commandTimeout
         if(!this.client){
             throw new Error(`construct Client error: ${this.client}`)
@@ -37,6 +37,7 @@ module.exports = app=>class extends Emitter{
         }
         client.on('close', (...rest)=>{
             this.roomSub.unsubscribe()
+            this.userSub.unsubscribe()
             this.emit('close', ...rest)
         })
         client.on('message', (...rest)=>this.messageHandler(...rest))
@@ -53,7 +54,7 @@ module.exports = app=>class extends Emitter{
         return this.socket.to(...rest)
     }
     
-    get sub(){
+    get roomSub(){
         if(!this[ROOMSUB]){
             this[ROOMSUB] = new Redis(app.config.redis)
         }
