@@ -82,4 +82,4 @@ class Emitter extends _Emitter{
     }
 }
 
-export default Emitter
+module.exports = Emitter
