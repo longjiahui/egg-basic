@@ -6,7 +6,7 @@ const PUB = Symbol('Socket#pub')
 module.exports = app=>class{
     get pub(){
         if(!this[PUB]){
-            this[PUB] = new Redis(app.config.redis)
+            this[PUB] = new Redis(app.config.roomioredis)
         }
         return this[PUB]
     }

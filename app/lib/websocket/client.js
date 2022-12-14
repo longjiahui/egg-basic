@@ -9,8 +9,8 @@ const SOCKET = Symbol('Client#Socket')
 
 module.exports = app=>class extends Emitter{
 
-    pub = new Redis(app.config.redis)
-    userSub = new Redis(app.config.redis)
+    pub = new Redis(app.config.roomioredis)
+    userSub = new Redis(app.config.roomioredis)
 
     // client: 'ws' connection
     constructor(client, userID, commandTimeout=15000){
@@ -56,7 +56,7 @@ module.exports = app=>class extends Emitter{
     
     get roomSub(){
         if(!this[ROOMSUB]){
-            this[ROOMSUB] = new Redis(app.config.redis)
+            this[ROOMSUB] = new Redis(app.config.roomioredis)
         }
         return this[ROOMSUB]
     }
