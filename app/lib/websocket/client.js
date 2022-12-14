@@ -28,7 +28,7 @@ module.exports = app=>class extends Emitter{
                     app.logger.error(`${userID} subscribe failed: `, err)
                 }else{
                     this.userSub.on('message', (channel, message)=>{
-                        if(channel === userID){
+                        if(channel === String(userID)){
                             this.send(...utils.deserializeRedisPSMessage(message))
                         }
                     })
@@ -127,7 +127,7 @@ module.exports = app=>class extends Emitter{
                 }
             })
             this.roomSub.on('message', (channel, message)=>{
-                if(roomChannel === channel){
+                if(String(roomChannel) === channel){
                     this.send(...utils.deserializeRedisPSMessage(message))
                 }
             })
