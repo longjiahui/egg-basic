@@ -117,21 +117,29 @@ module.exports = app=>class extends Emitter{
 
     join(roomChannel){
         return new Promise(async (r, reject)=>{
-            await this.roomSub.unsubscribe()
-            this.roomSub.removeAllListeners('message')
-            this.roomSub.subscribe(roomChannel, (err, count)=>{
-                if (err) {
-                    reject(err)
-                } else {
-                    r(count)
-                }
-            })
-            this.roomSub.on('message', (channel, message)=>{
-                if(String(roomChannel) === channel){
-                    this.send(...utils.deserializeRedisPSMessage(message))
-                }
-            })
+            await this.leave()
+            if(roomChannel){
+                this.roomSub.subscribe(roomChannel, (err, count)=>{
+                    if (err) {
+                        reject(err)
+                    } else {
+                        r(count)
+                    }
+                })
+                this.roomSub.on('message', (channel, message)=>{
+                    if(String(roomChannel) === channel){
+                        this.send(...utils.deserializeRedisPSMessage(message))
+                    }
+                })
+            }else{
+                r()
+            }
         })
+    }
+
+    async leave(){
+        await this.roomSub.unsubscribe()
+        this.roomSub.removeAllListeners('message')
     }
 
     close(){
