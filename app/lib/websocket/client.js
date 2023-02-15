@@ -115,8 +115,15 @@ module.exports = app=>class extends Emitter{
         return promise
     }
 
-    join(roomChannel){
-        return new Promise(async (r, reject)=>{
+    async join(roomChannel){
+        if(this._joiningPromise){
+            try{
+                await this._joiningPromise
+            }catch(err){
+                console.warn('await for join error: ', err)
+            }
+        }
+        this._joiningPromise = new Promise(async (r, reject)=>{
             await this.leave()
             if(roomChannel){
                 this.roomSub.subscribe(roomChannel, (err, count)=>{
@@ -134,7 +141,7 @@ module.exports = app=>class extends Emitter{
             }else{
                 r()
             }
-        })
+        }).finally(()=>this._joiningPromise = null)
     }
 
     async leave(){
