@@ -1,4 +1,6 @@
-exports.LoginCheckError = class extends Error{
+const { ValidateError } = require('@anfo/egg-anfo-validator/app/lib/errorType')
+
+class LoginCheckError extends Error{
     constructor(...messages){
         super()
         let message = ''
@@ -15,3 +17,24 @@ exports.LoginCheckError = class extends Error{
         this.name = 'loginCheckError'
     }
 }
+
+let DefaultError = class extends Error{
+    constructor(no, msg, ...rest){
+        super(`${no}: ${msg}`, ...rest)
+        this.no = no
+        this.msg = msg
+    }
+}
+let ServiceError = class extends DefaultError{
+    constructor(no, msg, ...rest){
+        super(no, msg, ...rest)
+    }
+}
+let errors = {
+    ValidateError,
+    LoginCheckError,
+    
+    Error: DefaultError, 
+    ServiceError,
+}
+module.exports = errors
